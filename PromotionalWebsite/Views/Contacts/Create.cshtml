@@ -5,12 +5,12 @@
 }
 
 <h2>Create</h2>
+@*<script src="https://www.google.com/recaptcha/api.js" async defer></script>*@
 
-
-@using (Ajax.BeginForm("Create", new AjaxOptions() { HttpMethod = "post",OnSuccess="contactSaved" }))
+@using (Ajax.BeginForm("Create", new AjaxOptions() { HttpMethod = "post", OnSuccess = "contactSaved" }))
 {
     @Html.AntiForgeryToken()
-    
+
     <div class="form-horizontal">
         <h4>ContactDM</h4>
         <hr />
@@ -46,7 +46,9 @@
                 @Html.ValidationMessageFor(model => model.Message, "", new { @class = "text-danger" })
             </div>
         </div>
-
+        <div class="form-group">
+            <div class="g-recaptcha" style="margin-left: 200px;" data-sitekey="6Lei-9sUAAAAAIPL688LgxSAOo_I9KrxTlUbnfEP"></div>
+        </div>
         <div class="form-group">
             <div class="col-md-offset-2 col-md-10">
                 <input type="submit" value="Create" class="btn btn-default" />
@@ -60,7 +62,7 @@
 
 @section Scripts {
     @Scripts.Render("~/bundles/jqueryval")
-<script src="~/Scripts/jquery.unobtrusive-ajax.min.js"></script>
+    <script src="~/Scripts/jquery.unobtrusive-ajax.min.js"></script>
     <script>
         function contactSaved() {
             alert("Contact have been saved successfully!");

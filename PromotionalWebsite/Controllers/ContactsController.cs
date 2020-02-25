@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Web;
 using System.Web.Mvc;
+using Newtonsoft.Json;
 using PromotionalWebsite.Models;
 
 namespace PromotionalWebsite.Controllers
@@ -50,12 +52,40 @@ namespace PromotionalWebsite.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Create([Bind(Include = "Id,Name,FirstName,Email,Message,Date")] ContactDM contactDM)
         {
-            if (ModelState.IsValid)
+            var captcha = Request.Form["g-recaptcha-response"]; const string secret = "6Lei-9sUAAAAAJmy7TqUVDe4hf0JvF6yYRn0dBrg";
+
+            var restUrl = string.Format("https://www.google.com/recaptcha/api/siteverify?secret={0}&response={1}", secret, captcha);
+
+            WebRequest req = WebRequest.Create(restUrl);
+            HttpWebResponse resp = req.GetResponse() as HttpWebResponse;
+
+            JsonSerializer serializer = new JsonSerializer();
+
+            CaptchaResult result = null;
+
+            using (var reader = new StreamReader(resp.GetResponseStream()))
             {
-                contactDM.Date = DateTime.Now;
-                db.Contacts.Add(contactDM);
-                db.SaveChanges();
-                return RedirectToAction("Index");
+                string resultObject = reader.ReadToEnd();
+                result = JsonConvert.DeserializeObject<CaptchaResult>(resultObject);
+            }
+            if (!result.Success)
+            {
+                ModelState.AddModelError("", "captcha messagge error");
+                if (result.ErrorCodes != null)
+                {
+                    ModelState.AddModelError("", result.ErrorCodes[0]);
+                }
+            
+            }
+            else
+            {
+                if (ModelState.IsValid)
+                {
+                    contactDM.Date = DateTime.Now;
+                    db.Contacts.Add(contactDM);
+                    db.SaveChanges();
+                    return RedirectToAction("Index");
+                }
             }
 
             return View(contactDM);
